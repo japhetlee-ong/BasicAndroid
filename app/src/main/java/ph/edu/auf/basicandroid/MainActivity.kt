@@ -1,5 +1,6 @@
 package ph.edu.auf.basicandroid
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.view.View
@@ -9,12 +10,13 @@ import android.widget.RadioGroup.OnCheckedChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import ph.edu.auf.basicandroid.databinding.ActivityMainBinding
+import ph.edu.auf.basicandroid.helpers.TipValues
 
 
 class MainActivity : AppCompatActivity(), OnCheckedChangeListener, View.OnClickListener {
 
     private lateinit var binding: ActivityMainBinding
-    private var selection: Int = -1
+    private lateinit var selection: TipValues
     private var hasSelected: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,47 +24,47 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, View.OnClickL
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-
         binding.rgTip.setOnCheckedChangeListener(this)
-        //binding.btnCalculateTip.setOnClickListener(this)
-        binding.btnCalculateTip.setOnClickListener {
-            
-
-            if(binding.edtTotalCharge.text.isNullOrEmpty()){
-                binding.edtTotalCharge.error = "Total Charge required"
-                return@setOnClickListener
-            }
-
-            if(hasSelected){
-                binding.txtTotalTip.text = "${calculateTip(binding.edtTotalCharge.text.toString().toDouble())}"
-            }
-
-        }
+        binding.btnCalculateTip.setOnClickListener(this)
 
     }
 
     private fun calculateTip(amount: Double): Double{
         return when(selection){
-            (1) -> (amount * .10)
-            (2) -> (amount * .20)
-            (3) -> (amount * .30)
+            (TipValues.TEN) -> (amount * .10)
+            (TipValues.TWENTY) -> (amount * .20)
+            (TipValues.THIRTY) -> (amount * .30)
             else -> 0.0
         }
     }
 
     override fun onCheckedChanged(p0: RadioGroup?, p1: Int) {
         when(p1){
-            (R.id.rb_ten) -> selection = 1
-            (R.id.rb_twenty) -> selection = 2
-            (R.id.rb_thirty) -> selection = 3
+            (R.id.rb_ten) -> selection = TipValues.TEN
+            (R.id.rb_twenty) -> selection = TipValues.TWENTY
+            (R.id.rb_thirty) -> selection = TipValues.THIRTY
         }
         hasSelected = true
         binding.btnCalculateTip.isEnabled = true
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onClick(p0: View?) {
-        TODO("Not yet implemented")
+
+        //HIDE KEYBOARD ON CLICK
+        val imm = ContextCompat.getSystemService(p0!!.context, InputMethodManager::class.java)
+        imm?.hideSoftInputFromWindow(p0.windowToken, 0)
+
+        if(binding.edtTotalCharge.text.isNullOrEmpty()){
+            binding.edtTotalCharge.error = "Total Charge required"
+            return
+        }
+
+        if(hasSelected){
+            val tip =  calculateTip(binding.edtTotalCharge.text.toString().toDouble())
+            val roundOff = String.format("%.2f", tip)
+            binding.txtTotalTip.text = "$${roundOff}"
+        }
     }
 
 
